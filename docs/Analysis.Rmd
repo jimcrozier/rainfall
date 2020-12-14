@@ -13,11 +13,30 @@ library(tidyverse)
 
 This looks like rainfall data
 
-```{r cars}
+```{r fig1}
 stations_dat = read.csv("../data/Ajmer_Rainfall data_1973-2008.csv")
 station_names = stations_dat %>% group_by(station_name) %>% summarise(cnt = n(), avg = mean(numeric))
 
 plot_ly(stations_dat %>% filter(station_name == station_names$station_name[1]), y = ~numeric, x=~dt, type="scatter", mode= "line")
+
+```
+
+Looks like some of the station names have some variants: 
+
+```{r fig2}
+stations_dat = read.csv("../data/Ajmer_Rainfall data_1973-2008.csv")
+stations_dat = stations_dat %>% rowwise() %>% mutate(new_station_name = str_trim(strsplit(gsub("\\("," ",tolower(station_name))," ")[[1]][1]))
+station_names = stations_dat %>% group_by(new_station_name) %>% summarise(cnt = n(), avg = mean(numeric))
+
+fig = plot_ly(stations_dat %>% filter(new_station_name == station_names$new_station_name[1]), y = ~numeric, x=~dt, type="scatter", mode= "line" ,name = station_names$new_station_name[1])
+
+fig 
+
+for(i in 1:(NROW(station_names)-1)){
+  dat = stations_dat %>% filter(new_station_name == station_names$new_station_name[i])
+  fig  = fig %>% add_trace(y = dat$numeric, x = dat$dt, name = station_names$new_station_name[i] )
+}
+fig
 
 ```
 
